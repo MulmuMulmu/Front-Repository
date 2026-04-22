@@ -1,0 +1,66 @@
+.card {
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 20px;
+  background-color: #fff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.reporter {
+  font-size: 14px;
+  color: #888;
+}
+
+.statusBadge {
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+}
+
+.done {
+  color: #666;
+}
+
+.pending {
+  color: #666;
+}
+
+.content {
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 24px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+}
+
+.actionBtn {
+  background-color: #e0e0e0;
+  color: #666;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.actionBtn:hover {
+  background-color: #d0d0d0;
+}
