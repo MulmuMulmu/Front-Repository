@@ -25,10 +25,6 @@
 }
 
 @media (max-width: 1200px) {
-  .bottomGrid {
-    flex-direction: column;
-  }
-  
   .statGrid {
     flex-wrap: wrap;
   }

@@ -17,8 +17,4 @@
   align-items: flex-start;
 }
 
-@media (max-width: 1200px) {
-  .layout {
-    flex-direction: column;
-  }
-}
+/* Responsive stacking removed to keep side-by-side layout pinned */
