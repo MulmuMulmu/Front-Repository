@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOcrResult, updateOcrResult } from '../api/ocr';
+import { getOcrResult, getOcrIngredients, updateOcrAccuracy } from '../api/ocr';
+
 import styles from './OcrVerificationPage.module.css';
 
 const OcrVerificationPage = () => {
@@ -17,11 +18,25 @@ const OcrVerificationPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    const response = await getOcrResult(id);
-    if (response.success) {
-      setData(response.result);
+    try {
+      const [resDetail, resIngredients] = await Promise.all([
+        getOcrResult(id),
+        getOcrIngredients(id)
+      ]);
+
+      if (resDetail.success) {
+        const combinedData = {
+          ...resDetail.result,
+          accuracy: Number(resDetail.result.accuracy) || 0, // 숫자형 변환으로 앞자리 0 제거
+          items: resIngredients.success ? resIngredients.result : []
+        };
+        setData(combinedData);
+      }
+    } catch (error) {
+      console.error('데이터 로드 실패:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleEditToggle = async () => {
@@ -31,10 +46,12 @@ const OcrVerificationPage = () => {
       setIsEditing(true);
     } else {
       // '수정 완료' 클릭 시 서버에 저장하고 현재 페이지 유지
-      const success = await updateOcrResult(data.receiptId, data);
-      if (success) {
-        alert('수정 정보가 데이터베이스에 성공적으로 반영되었습니다.');
+      const response = await updateOcrAccuracy(id, data.accuracy);
+      if (response.success) {
+        alert(response.result);
         setIsEditing(false); // 수정 모드 종료하고 상세 보기로 전환
+      } else {
+        alert(response.result);
       }
     }
   };
@@ -48,8 +65,8 @@ const OcrVerificationPage = () => {
   if (loading) return <div className={styles.loading}>데이터를 불러오고 있습니다...</div>;
   if (!data) return <div className={styles.error}>데이터를 불러오는데 실패했습니다.</div>;
 
-  // 영수증 이미지 경로 (생성된 샘플 영수증 이미지 사용)
-  const receiptImg = '/receipt_sample.png';
+  // 영수증 이미지 경로 (서버 데이터 사용)
+  const receiptImg = data.receiptImage || '/receipt_sample.png';
 
   return (
     <div className={styles.container}>
@@ -96,17 +113,17 @@ const OcrVerificationPage = () => {
               <label>구매 날짜</label>
               <input
                 type="text"
-                value={data.purchasedAt}
+                value={data.purchaseTime || ''}
                 disabled={true}
               />
             </div>
             <div className={styles.infoField}>
               <label>업로드 시간</label>
-              <input type="text" value={data.uploadedAt} disabled={true} />
+              <input type="text" value={data.createTime || ''} disabled={true} />
             </div>
             <div className={styles.infoField}>
               <label>업로드 사용자</label>
-              <input type="text" value={data.uploadedBy} disabled={true} />
+              <input type="text" value={data.nickName || ''} disabled={true} />
             </div>
             <div className={styles.infoField}>
               <label>인식 정확도</label>
@@ -114,13 +131,19 @@ const OcrVerificationPage = () => {
                 <input
                   type="number"
                   className={`${styles.accuracyInput} ${isEditing ? styles.editable : ''}`}
-                  value={data.accuracy}
+                  value={data.accuracy === 0 && isEditing ? '' : data.accuracy}
                   step="0.01"
                   min="0"
                   max="100"
                   disabled={!isEditing}
+                  onFocus={(e) => {
+                    if (data.accuracy === 0) {
+                      e.target.value = '';
+                    }
+                  }}
                   onChange={(e) => {
-                    const value = parseFloat(e.target.value) || 0;
+                    const rawValue = e.target.value;
+                    const value = rawValue === '' ? 0 : parseFloat(rawValue);
                     setData({ ...data, accuracy: Math.min(100, Math.max(0, value)) });
                   }}
                 />
@@ -144,24 +167,30 @@ const OcrVerificationPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {data.items.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <input
-                        type="text"
-                        value={item.name}
-                        disabled={true}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={item.quantity}
-                        disabled={true}
-                      />
-                    </td>
+                {data.items && data.items.length > 0 ? (
+                  data.items.map((item, index) => (
+                    <tr key={index}>
+                      <td>
+                        <input
+                          type="text"
+                          value={item.itemName || ''}
+                          disabled={true}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={item.quantity || 0}
+                          disabled={true}
+                        />
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="2" className={styles.noItems}>인식된 품목 정보가 없습니다.</td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

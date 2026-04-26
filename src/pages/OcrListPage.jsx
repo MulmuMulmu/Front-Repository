@@ -15,7 +15,7 @@ const OcrListPage = () => {
       setLoading(true);
       const response = await getOcrList();
       if (response.success) {
-        setReceipts(response.result.receipts);
+        setReceipts(response.result || []);
       }
       setLoading(false);
     };
@@ -28,13 +28,13 @@ const OcrListPage = () => {
 
   // 필터링 및 정렬 로직
   const filteredAndSortedReceipts = receipts
-    .filter(r => r.nickname.toLowerCase().includes(searchNickname.toLowerCase()))
+    .filter(r => (r.nickName || '').toLowerCase().includes(searchNickname.toLowerCase()))
     .sort((a, b) => {
       if (sortOrder === 'desc') {
-        return new Date(b.uploadedAt.replace(' ', 'T')) - new Date(a.uploadedAt.replace(' ', 'T'));
+        return new Date(b.createTime) - new Date(a.createTime);
       }
       if (sortOrder === 'asc') {
-        return new Date(a.uploadedAt.replace(' ', 'T')) - new Date(b.uploadedAt.replace(' ', 'T'));
+        return new Date(a.createTime) - new Date(b.createTime);
       }
       if (sortOrder === 'acc-desc') {
         return b.accuracy - a.accuracy;
@@ -100,12 +100,12 @@ const OcrListPage = () => {
           <tbody>
             {filteredAndSortedReceipts.length > 0 ? (
               filteredAndSortedReceipts.map((receipt) => (
-                <tr key={receipt.id} onClick={() => handleRowClick(receipt.id)} className={styles.row}>
-                  <td>{receipt.id}</td>
-                  <td>{receipt.nickname}</td>
-                  <td>{receipt.uploadedAt}</td>
+                <tr key={receipt.ocrId} onClick={() => handleRowClick(receipt.ocrId)} className={styles.row}>
+                  <td>{receipt.ocrId}</td>
+                  <td>{receipt.nickName}</td>
+                  <td>{receipt.createTime}</td>
                   <td style={{ fontWeight: 'bold', color: receipt.accuracy > 90 ? '#16a34a' : '#ea580c' }}>
-                    {receipt.accuracy}%
+                    {Number(receipt.accuracy)}%
                   </td>
                   <td>
                     <button className={styles.actionBtn}>검수하기</button>

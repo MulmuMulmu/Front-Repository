@@ -29,37 +29,44 @@ const StatisticsPage = () => {
   const [startDate, setStartDate] = useState(defaultStart);
   const [endDate, setEndDate] = useState(yesterday);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      const response = await getStatisticsData();
-      if (response.success) {
-        setAllData(response.result.dailyCollection);
-      }
-      setLoading(false);
-    };
-    fetchData();
-  }, []);
+  // 날짜 포맷 변환 (YYYY-MM-DD)
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-  // 선택된 날짜 범위에 따른 데이터 필터링
-  const filteredData = useMemo(() => {
-    if (!allData.length) return [];
-
-    return allData.filter(item => {
-      // YYYY-MM-DD 형식을 '로컬 시간' Date 객체로 변환 (타임존 이슈 방지)
-      const [year, month, day] = item.date.split('-').map(Number);
-      const itemDate = new Date(year, month - 1, day);
-
-      // 시간 정보를 제거하여 날짜만 비교
-      itemDate.setHours(0, 0, 0, 0);
-      const start = new Date(startDate);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(endDate);
-      end.setHours(0, 0, 0, 0);
-
-      return itemDate >= start && itemDate <= end;
+  const fetchData = async () => {
+    setLoading(true);
+    const response = await getStatisticsData({
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate)
     });
-  }, [allData, startDate, endDate]);
+    
+    if (response.success && Array.isArray(response.result)) {
+      // 서버 데이터 형식을 차트용으로 변환
+      const formatted = response.result.map(item => ({
+        date: item.date,
+        totalCount: item.total,
+        item1_name: item.rank1?.[0] || '',
+        item1_value: item.rank1?.[1] || 0,
+        item2_name: item.rank2?.[0] || '',
+        item2_value: item.rank2?.[1] || 0,
+        item3_name: item.rank3?.[0] || '',
+        item3_value: item.rank3?.[1] || 0,
+      }));
+      setAllData(formatted);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [startDate, endDate]);
+
+  // 서버에서 이미 필터링된 데이터를 주므로 allData를 그대로 사용
+  const chartData = useMemo(() => allData, [allData]);
 
   // 커스텀 툴팁 구현
   const CustomTooltip = ({ active, payload, label }) => {
@@ -136,8 +143,9 @@ const StatisticsPage = () => {
         <div className={styles.chartContainer}>
           <ResponsiveContainer width="100%" height={500}>
             <ComposedChart
-              data={filteredData}
-              margin={{ top: 20, right: 30, bottom: 20, left: 20 }}
+              data={chartData}
+              barGap={10} // 막대 사이 간격 추가
+              margin={{ top: 40, right: 30, bottom: 20, left: 20 }}
             >
               <CartesianGrid stroke="#f5f5f5" vertical={false} />
               <XAxis
@@ -147,8 +155,10 @@ const StatisticsPage = () => {
                 tickLine={false}
                 tick={{ fontSize: 11, fill: '#666' }}
                 tickFormatter={(dateStr) => {
-                  const [year, month, day] = dateStr.split('-');
-                  return `${year.slice(2)}-${month}-${day}`;
+                  if (!dateStr) return '';
+                  const parts = dateStr.split('-');
+                  if (parts.length < 3) return dateStr;
+                  return `${parts[0].slice(2)}-${parts[1]}-${parts[2]}`;
                 }}
               />
               <YAxis
@@ -159,15 +169,36 @@ const StatisticsPage = () => {
               <Tooltip content={<CustomTooltip />} />
               <Legend verticalAlign="top" height={36} />
 
-              {/* 바 그래프: 상위 3개 식재료 */}
-              <Bar dataKey="item1_value" name="상위 1위" fill="#8884d8" radius={[4, 4, 0, 0]} barSize={20}>
-                <LabelList dataKey="item1_name" position="top" offset={10} style={{ fontSize: 11, fontWeight: 700, fill: '#666' }} />
+              {/* 바 그래프: 상위 3개 식재료 (라벨 회전 적용) */}
+              <Bar dataKey="item1_value" name="상위 1위" fill="#8884d8" radius={[4, 4, 0, 0]} barSize={25}>
+                <LabelList 
+                  dataKey="item1_name" 
+                  position="top" 
+                  offset={15} 
+                  angle={-45}
+                  textAnchor="start"
+                  style={{ fontSize: 10, fontWeight: 700, fill: '#444' }} 
+                />
               </Bar>
-              <Bar dataKey="item2_value" name="상위 2위" fill="#82ca9d" radius={[4, 4, 0, 0]} barSize={20}>
-                <LabelList dataKey="item2_name" position="top" offset={10} style={{ fontSize: 11, fontWeight: 700, fill: '#666' }} />
+              <Bar dataKey="item2_value" name="상위 2위" fill="#82ca9d" radius={[4, 4, 0, 0]} barSize={25}>
+                <LabelList 
+                  dataKey="item2_name" 
+                  position="top" 
+                  offset={15} 
+                  angle={-45}
+                  textAnchor="start"
+                  style={{ fontSize: 10, fontWeight: 700, fill: '#444' }} 
+                />
               </Bar>
-              <Bar dataKey="item3_value" name="상위 3위" fill="#ffc658" radius={[4, 4, 0, 0]} barSize={20}>
-                <LabelList dataKey="item3_name" position="top" offset={10} style={{ fontSize: 11, fontWeight: 700, fill: '#666' }} />
+              <Bar dataKey="item3_value" name="상위 3위" fill="#ffc658" radius={[4, 4, 0, 0]} barSize={25}>
+                <LabelList 
+                  dataKey="item3_name" 
+                  position="top" 
+                  offset={15} 
+                  angle={-45}
+                  textAnchor="start"
+                  style={{ fontSize: 10, fontWeight: 700, fill: '#444' }} 
+                />
               </Bar>
 
               {/* 꺾은선 그래프: 전체 수집량 */}
