@@ -93,14 +93,6 @@ const OcrVerificationPage = () => {
 
           <div className={styles.infoGrid}>
             <div className={styles.infoField}>
-              <label>가게 이름</label>
-              <input
-                type="text"
-                value={data.storeName}
-                disabled={true}
-              />
-            </div>
-            <div className={styles.infoField}>
               <label>구매 날짜</label>
               <input
                 type="text"

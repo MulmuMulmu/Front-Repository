@@ -9,23 +9,8 @@ import client from './client';
  */
 export const getUserStatistics = async () => {
   try {
-    // const response = await client.get('/users/statistics', {
-    //   headers: { Authorization: 'exampleToken' }
-    // });
-    // return response.data;
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          result: {
-            totalUsers: 1000,
-            atLeastOneWarming: 20, // 사용자 수정분 유지
-            permanentSuspension: 0
-          }
-        });
-      }, 500);
-    });
+    const response = await client.get('/admin/dashboard/user');
+    return response.data;
   } catch (error) {
     return {
       success: false,
@@ -35,26 +20,10 @@ export const getUserStatistics = async () => {
   }
 };
 
-/**
- * 당일 신고 건수 조회
- */
 export const getTodayReportsCount = async () => {
   try {
-    // const response = await client.get('/reports/today/count', {
-    //     headers: { Authorization: 'exampleToken' }
-    // });
-    // return response.data;
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          result: {
-            todayReports: 12
-          }
-        });
-      }, 400);
-    });
+    const response = await client.get('/admin/dashboard/today/report');
+    return response.data;
   } catch (error) {
     return {
       success: false,
@@ -64,26 +33,10 @@ export const getTodayReportsCount = async () => {
   }
 };
 
-/**
- * 당일 나눔 횟수 조회
- */
 export const getTodaySharesCount = async () => {
   try {
-    // const response = await client.get('/statistics/today/shares', {
-    //   headers: { Authorization: 'exampleToken' }
-    // });
-    // return response.data;
-
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          success: true,
-          result: {
-            todayShares: 50
-          }
-        });
-      }, 300);
-    });
+    const response = await client.get('/admin/dashboard/today/share');
+    return response.data;
   } catch (error) {
     return {
       success: false,

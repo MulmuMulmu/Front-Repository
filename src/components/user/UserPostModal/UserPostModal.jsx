@@ -4,13 +4,32 @@ import styles from './UserPostModal.module.css';
 const UserPostModal = ({ isOpen, onClose, userId, nickName, posts, loading }) => {
   const [selectedPost, setSelectedPost] = React.useState(null);
 
+  const [detailLoading, setDetailLoading] = React.useState(false);
+
   React.useEffect(() => {
     if (!isOpen) {
-      setSelectedPost(null); // 모달 닫힐 때 선택 상태 초기화
+      setSelectedPost(null);
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
+
+  const handlePostClick = async (post) => {
+    setDetailLoading(true);
+    setSelectedPost(post); // 우선 기본 정보로 창 열기
+    
+    try {
+      const { getShareDetail } = await import('../../../api/reports');
+      const response = await getShareDetail(post.shareId);
+      if (response.success) {
+        setSelectedPost(response.result); // 상세 정보로 업데이트
+      }
+    } catch (error) {
+      console.error('상세 정보를 불러오지 못했습니다:', error);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   const handleBack = () => {
     setSelectedPost(null);
@@ -19,8 +38,8 @@ const UserPostModal = ({ isOpen, onClose, userId, nickName, posts, loading }) =>
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {selectedPost ? (
-          /* 게시물 상세 보기 모드 (신고 접수 상세보기와 디자인 동기화) */
+        {selectedPost && !detailLoading ? (
+          /* 게시물 상세 보기 모드 */
           <>
             <div className={styles.imageContainer}>
               <img src={selectedPost.image} alt="게시물 이미지" className={styles.detailImage} />
@@ -38,9 +57,9 @@ const UserPostModal = ({ isOpen, onClose, userId, nickName, posts, loading }) =>
                 <div className={styles.menuIcon}>⋮</div>
               </div>
               <p className={styles.categoryTag}>
-                {selectedPost.title} ({selectedPost.category})
+                {selectedPost.ingredient}({selectedPost.category})
               </p>
-              <p className={styles.detailDescription}>{selectedPost.content}</p>
+              <p className={styles.detailDescription}>{selectedPost.description || selectedPost.content}</p>
             </div>
 
             <div className={styles.detailFooter}>
@@ -48,6 +67,8 @@ const UserPostModal = ({ isOpen, onClose, userId, nickName, posts, loading }) =>
               <button className={styles.closeBtnFooter} onClick={onClose}>닫기</button>
             </div>
           </>
+        ) : selectedPost && detailLoading ? (
+          <div className={styles.loading}>상세 정보를 불러오는 중...</div>
         ) : (
           /* 게시물 리스트 모드 */
           <>
@@ -65,7 +86,7 @@ const UserPostModal = ({ isOpen, onClose, userId, nickName, posts, loading }) =>
                     <div 
                       key={post.shareId} 
                       className={styles.postItem}
-                      onClick={() => setSelectedPost(post)}
+                      onClick={() => handlePostClick(post)}
                       style={{ cursor: 'pointer' }}
                     >
                       <div className={styles.imageWrapper}>

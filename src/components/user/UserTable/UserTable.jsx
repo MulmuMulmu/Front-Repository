@@ -54,7 +54,9 @@ const UserTable = () => {
 
     const query = searchQuery.toLowerCase();
     switch (searchCategory) {
-      case 'ID/Email':
+      case '번호':
+        return user.number.toString().includes(query);
+      case 'ID':
         return user.userId.toLowerCase().includes(query);
       case '닉네임':
         return user.nickName.toLowerCase().includes(query);
@@ -74,7 +76,8 @@ const UserTable = () => {
               value={searchCategory}
               onChange={(e) => setSearchCategory(e.target.value)}
             >
-              <option value="ID/Email">ID/Email</option>
+              <option value="번호">번호</option>
+              <option value="ID">ID</option>
               <option value="닉네임">닉네임</option>
             </select>
             <span className={styles.selectArrow}>▼</span>
@@ -108,7 +111,7 @@ const UserTable = () => {
           <thead>
             <tr>
               <th style={{ width: '10%' }}>번호</th>
-              <th style={{ width: '30%' }}>Email</th>
+              <th style={{ width: '30%' }}>ID</th>
               <th style={{ width: '20%' }}>닉네임</th>
               <th style={{ width: '20%' }}>누적 경고</th>
               <th style={{ width: '20%' }}>작성 나눔글</th>

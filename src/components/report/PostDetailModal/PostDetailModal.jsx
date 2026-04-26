@@ -46,7 +46,7 @@ const PostDetailModal = ({ isOpen, onClose, reportData, onProcessUser }) => {
                 <div className={styles.menuIcon}>⋮</div>
               </div>
               <p className={styles.categoryTag}>
-                {postData.title} ({postData.category})
+                {postData.ingredient || postData.title}({postData.category || '기타'})
               </p>
               <p className={styles.description}>{postData.description}</p>
             </div>

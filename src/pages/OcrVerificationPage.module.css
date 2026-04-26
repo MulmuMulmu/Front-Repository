@@ -116,19 +116,19 @@
 .accuracyWrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 4px;
   height: 38px;
 }
 
 .accuracyInput {
-  width: 70px;
-  padding: 6px 10px;
+  width: 50px;
+  padding: 6px 0px;
   border: 1px solid #ddd;
   border-radius: 6px;
   font-size: 15px;
   font-weight: 700;
   color: #4a90e2;
-  text-align: right;
+  text-align: left;
   background-color: #fff;
   transition: all 0.2s;
   /* 스핀 버튼(화살표) 제거 */
@@ -150,7 +150,7 @@
 .percentSymbol {
   font-weight: 700;
   color: #4a90e2;
-  margin-right: 10px;
+  margin-right: 5px;
 }
 
 .accuracyBar {
