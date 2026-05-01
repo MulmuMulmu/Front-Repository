@@ -169,10 +169,10 @@ export default function MyInfoScreen({ navigation }) {
         {/* 거래 섹션 */}
         <View style={styles.card}>
           <Text style={styles.cardSectionTitle}>거래</Text>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyPosts')}>
             <Text style={styles.menuItemText}>내가 쓴 글</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => navigation.navigate('MyShareHistory')}>
             <Text style={styles.menuItemText}>나눔 내역</Text>
           </TouchableOpacity>
         </View>

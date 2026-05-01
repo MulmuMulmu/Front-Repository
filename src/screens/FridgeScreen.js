@@ -6,10 +6,22 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const categories = ['전체', '정육/계란', '해산물', '채소/과일', '유제품', '쌀/면/빵', '소스/조미료/오일', '가공식품', '기타'];
+
+const categoryEmoji = {
+  '정육/계란': '🥩',
+  '해산물': '🐟',
+  '채소/과일': '🥬',
+  '유제품': '🥛',
+  '쌀/면/빵': '🍚',
+  '소스/조미료/오일': '🫙',
+  '가공식품': '🥫',
+  '기타': '📦',
+};
 
 const getDdayColor = (dday) => {
   const day = parseInt(dday.replace('D-', ''));
@@ -32,6 +44,20 @@ const [items, setItems] = useState(dummyData);
   const [sortVisible, setSortVisible] = useState(false);
   const [sortType, setSortType] = useState('날짜순');
   const [addVisible, setAddVisible] = useState(false);
+  const [editVisible, setEditVisible] = useState(false);
+  const [editItem, setEditItem] = useState(null);
+  const [editCategoryVisible, setEditCategoryVisible] = useState(false);
+  const [editStatusVisible, setEditStatusVisible] = useState(false);
+
+  const openEdit = (item) => {
+    setEditItem({ ...item });
+    setEditVisible(true);
+  };
+
+  const handleEditSave = () => {
+    setItems(prev => prev.map(i => i.id === editItem.id ? editItem : i));
+    setEditVisible(false);
+  };
 
   const toggleCategory = (cat) => {
     if (cat === '전체') {
@@ -109,9 +135,9 @@ const [items, setItems] = useState(dummyData);
       ) : (
         <ScrollView style={styles.listContainer}>
           {filteredData.map((item) => (
-            <TouchableOpacity key={item.id} style={styles.itemCard}>
+            <TouchableOpacity key={item.id} style={styles.itemCard} onPress={() => openEdit(item)}>
               <View style={styles.itemImageContainer}>
-                <Text style={styles.itemEmoji}>🥬</Text>
+                <Text style={styles.itemEmoji}>{categoryEmoji[item.category] || '📦'}</Text>
               </View>
               <View style={styles.itemInfo}>
                 <Text style={styles.itemName}>{item.name}</Text>
@@ -174,6 +200,105 @@ const [items, setItems] = useState(dummyData);
           </TouchableOpacity>
         </View>
       )}
+
+      {/* 식재료 수정 모달 */}
+      <Modal visible={editVisible} transparent animationType="slide">
+        <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={() => setEditVisible(false)}>
+          <TouchableOpacity style={styles.editModal} activeOpacity={1}>
+            {editItem && (
+              <>
+                <View style={styles.editField}>
+                  <Text style={styles.editLabel}>이름</Text>
+                  <TextInput
+                    style={styles.editInput}
+                    value={editItem.name}
+                    onChangeText={(v) => setEditItem(prev => ({ ...prev, name: v }))}
+                    returnKeyType="done"
+                  />
+                </View>
+                <View style={styles.editField}>
+                  <Text style={styles.editLabel}>소비기한</Text>
+                  <TextInput
+                    style={styles.editInput}
+                    value={editItem.date}
+                    onChangeText={(v) => setEditItem(prev => ({ ...prev, date: v }))}
+                    placeholder="YY.MM.DD"
+                    placeholderTextColor="#adb5bd"
+                    keyboardType="numeric"
+                    returnKeyType="done"
+                  />
+                </View>
+                <View style={styles.editField}>
+                  <Text style={styles.editLabel}>사용유무</Text>
+                  <TouchableOpacity style={styles.editSelect} onPress={() => setEditStatusVisible(true)}>
+                    <Text style={styles.editSelectText}>{editItem.status || '선택'}</Text>
+                    <Text style={styles.editArrow}>▼</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.editField}>
+                  <Text style={styles.editLabel}>분류</Text>
+                  <TouchableOpacity style={styles.editSelect} onPress={() => setEditCategoryVisible(true)}>
+                    <Text style={styles.editSelectText}>{editItem.category || '선택'}</Text>
+                    <Text style={styles.editArrow}>▼</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.editButtons}>
+                  <TouchableOpacity style={styles.editCancelButton} onPress={() => setEditVisible(false)}>
+                    <Text style={styles.editCancelText}>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.editSaveButton} onPress={handleEditSave}>
+                    <Text style={styles.editSaveText}>저장</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* 사용유무 선택 - 모달 안에 */}
+                {editStatusVisible && (
+                  <TouchableOpacity style={styles.innerOverlay} onPress={() => setEditStatusVisible(false)}>
+                    <View style={styles.innerDropdown}>
+                      <Text style={styles.modalTitle}>사용유무</Text>
+                      {['사용중', '미사용'].map((s) => (
+                        <TouchableOpacity
+                          key={s}
+                          style={styles.modalItem}
+                          onPress={() => {
+                            setEditItem(prev => ({ ...prev, status: s }));
+                            setEditStatusVisible(false);
+                          }}
+                        >
+                          <Text style={[styles.modalItemText, editItem.status === s && styles.modalItemTextSelected]}>{s}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                {/* 분류 선택 - 모달 안에 */}
+                {editCategoryVisible && (
+                  <TouchableOpacity style={styles.innerOverlay} onPress={() => setEditCategoryVisible(false)}>
+                    <View style={styles.innerDropdown}>
+                      <Text style={styles.modalTitle}>분류</Text>
+                      <ScrollView>
+                        {categories.filter(c => c !== '전체').map((cat) => (
+                          <TouchableOpacity
+                            key={cat}
+                            style={styles.modalItem}
+                            onPress={() => {
+                              setEditItem(prev => ({ ...prev, category: cat }));
+                              setEditCategoryVisible(false);
+                            }}
+                          >
+                            <Text style={[styles.modalItemText, editItem.category === cat && styles.modalItemTextSelected]}>{cat}</Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              </>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
       {sortVisible && (
         <TouchableOpacity
@@ -458,5 +583,66 @@ const styles = StyleSheet.create({
   modalItemTextSelected: {
     color: '#87CEEB',
     fontWeight: 'bold',
+  },
+  editModal: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 24,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+  },
+  editField: { marginBottom: 16 },
+  editLabel: { fontSize: 13, color: '#adb5bd', marginBottom: 6 },
+  editInput: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    fontSize: 14,
+    color: '#495057',
+    backgroundColor: '#f8f9fa',
+  },
+  editSelect: {
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8f9fa',
+  },
+  editSelectText: { fontSize: 14, color: '#495057' },
+  editArrow: { fontSize: 12, color: '#495057' },
+  editButtons: { flexDirection: 'row', gap: 12, marginTop: 8 },
+  editCancelButton: {
+    flex: 1, height: 44, borderRadius: 8, borderWidth: 1,
+    borderColor: '#dee2e6', alignItems: 'center', justifyContent: 'center',
+  },
+  editCancelText: { fontSize: 15, color: '#495057' },
+  editSaveButton: {
+    flex: 1, height: 44, borderRadius: 8,
+    backgroundColor: '#87CEEB', alignItems: 'center', justifyContent: 'center',
+  },
+  editSaveText: { fontSize: 15, color: '#ffffff', fontWeight: 'bold' },
+  innerOverlay: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    justifyContent: 'flex-end',
+  },
+  innerDropdown: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    maxHeight: 300,
   },
 });

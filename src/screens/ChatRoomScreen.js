@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -23,6 +24,9 @@ export default function ChatRoomScreen({ navigation, route }) {
   const post = route?.params?.post || { title: '양상추', description: '당일 구매했는데, 많아서...', image: null };
   const [messages, setMessages] = useState(dummyMessages);
   const [input, setInput] = useState('');
+  const [doneModalVisible, setDoneModalVisible] = useState(false);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [shareType, setShareType] = useState('전체');
 
   const handleSend = () => {
     if (input.trim() === '') return;
@@ -45,7 +49,7 @@ export default function ChatRoomScreen({ navigation, route }) {
           <Text style={styles.backButton}>＜</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{chat.name}</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => setDoneModalVisible(true)}>
           <Text style={styles.doneButton}>완료</Text>
         </TouchableOpacity>
       </View>
@@ -88,6 +92,9 @@ export default function ChatRoomScreen({ navigation, route }) {
                       {msg.text}
                     </Text>
                   </View>
+                  {msg.isMine && (
+                    <Text style={styles.readText}>읽음</Text>
+                  )}
                   <Text style={[styles.messageTime, msg.isMine && { textAlign: 'right' }]}>
                     {msg.time}
                   </Text>
@@ -116,6 +123,84 @@ export default function ChatRoomScreen({ navigation, route }) {
           <Ionicons name="send" size={18} color="#ffffff" />
         </TouchableOpacity>
       </View>
+      {/* 나눔 완료 모달 */}
+      <Modal visible={doneModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.doneModal}>
+            <View style={styles.doneModalHeader}>
+              <Text style={styles.doneModalTitle}>나눔 완료</Text>
+              <TouchableOpacity onPress={() => setDoneModalVisible(false)}>
+                <Ionicons name="close" size={20} color="#495057" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.doneModalSubtitle}>나눔 방식을 선택해주세요.</Text>
+
+            <TouchableOpacity style={styles.radioOption} onPress={() => setShareType('전체')}>
+              <View style={[styles.radioCircle, shareType === '전체' && styles.radioCircleSelected]}>
+                {shareType === '전체' && <View style={styles.radioInner} />}
+              </View>
+              <View>
+                <Text style={styles.radioLabel}>전체 나눔</Text>
+                <Text style={styles.radioDesc}>내가 가진 식재료를 모두 나눔</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.radioOption} onPress={() => setShareType('일부')}>
+              <View style={[styles.radioCircle, shareType === '일부' && styles.radioCircleSelected]}>
+                {shareType === '일부' && <View style={styles.radioInner} />}
+              </View>
+              <View>
+                <Text style={styles.radioLabel}>일부 나눔</Text>
+                <Text style={styles.radioDesc}>내가 가진 식재료 중 일부 나눔</Text>
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.doneModalButtons}>
+              <TouchableOpacity style={styles.doneModalCancel} onPress={() => setDoneModalVisible(false)}>
+                <Text style={styles.doneModalCancelText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.doneModalConfirm} onPress={() => {
+                setDoneModalVisible(false);
+                setConfirmModalVisible(true);
+              }}>
+                <Text style={styles.doneModalConfirmText}>완료</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 최종 확인 모달 */}
+      <Modal visible={confirmModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.doneModal}>
+            <View style={styles.doneModalHeader}>
+              <View />
+              <TouchableOpacity onPress={() => setConfirmModalVisible(false)}>
+                <Ionicons name="close" size={20} color="#495057" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.confirmText}>
+              <Text style={styles.confirmHighlight}>'{chat.name}'</Text>
+              {' 님께 '}
+              <Text style={styles.confirmHighlight}>'{post.title}'</Text>
+              {' 나눔을 완료하셨습니까?'}
+            </Text>
+            <View style={styles.doneModalButtons}>
+              <TouchableOpacity style={styles.doneModalCancel} onPress={() => setConfirmModalVisible(false)}>
+                <Text style={styles.doneModalCancelText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.doneModalConfirm} onPress={() => {
+                setConfirmModalVisible(false);
+                navigation.goBack();
+              }}>
+                <Text style={styles.doneModalConfirmText}>완료</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </KeyboardAvoidingView>
   );
 }
@@ -167,6 +252,7 @@ const styles = StyleSheet.create({
   bubbleText: { fontSize: 15, color: '#495057', lineHeight: 22 },
   bubbleTextMine: { color: '#ffffff' },
   messageTime: { fontSize: 11, color: '#adb5bd' },
+  readText: { fontSize: 11, color: '#87CEEB', textAlign: 'right' },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -228,4 +314,48 @@ const styles = StyleSheet.create({
   postCardDesc: { fontSize: 13, color: '#adb5bd' },
   dateSeparator: { alignItems: 'center', marginVertical: 12 },
   dateSeparatorText: { fontSize: 12, color: '#adb5bd' },
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  doneModal: {
+    backgroundColor: '#ffffff', borderRadius: 16,
+    padding: 24, width: '85%',
+  },
+  doneModalHeader: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 6,
+  },
+  doneModalTitle: { fontSize: 17, fontWeight: 'bold', color: '#495057' },
+  doneModalSubtitle: { fontSize: 13, color: '#adb5bd', marginBottom: 20 },
+  radioOption: {
+    flexDirection: 'row', alignItems: 'center',
+    gap: 14, marginBottom: 16,
+  },
+  radioCircle: {
+    width: 20, height: 20, borderRadius: 10,
+    borderWidth: 2, borderColor: '#dee2e6',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  radioCircleSelected: { borderColor: '#87CEEB' },
+  radioInner: {
+    width: 10, height: 10, borderRadius: 5, backgroundColor: '#87CEEB',
+  },
+  radioLabel: { fontSize: 15, fontWeight: 'bold', color: '#495057', marginBottom: 2 },
+  radioDesc: { fontSize: 12, color: '#adb5bd' },
+  doneModalButtons: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  doneModalCancel: {
+    flex: 1, height: 44, borderRadius: 8,
+    borderWidth: 1, borderColor: '#dee2e6',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  doneModalCancelText: { fontSize: 15, color: '#495057' },
+  doneModalConfirm: {
+    flex: 1, height: 44, borderRadius: 8,
+    backgroundColor: '#87CEEB',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  doneModalConfirmText: { fontSize: 15, color: '#ffffff', fontWeight: 'bold' },
+  confirmText: { fontSize: 15, color: '#495057', lineHeight: 24, marginBottom: 20, marginTop: 8 },
+  confirmHighlight: { fontWeight: 'bold', color: '#495057' },
 });

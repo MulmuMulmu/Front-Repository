@@ -5,7 +5,7 @@ import FridgeNavigator from './FridgeNavigator';
 import MarketNavigator from './MarketNavigator';
 import RecipeNavigator from './RecipeNavigator';
 import ChatNavigator from './ChatNavigator';
-import MyInfoScreen from '../screens/MyInfoScreen';
+import MyInfoNavigator from './MyInfoNavigator';
 
 
 const Tab = createBottomTabNavigator();
@@ -79,7 +79,7 @@ export default function MainNavigator() {
       />
       <Tab.Screen
         name="내 정보"
-        component={MyInfoScreen}
+        component={MyInfoNavigator}
         options={{
           tabBarIcon: ({ focused }) => (
             <Image

@@ -29,10 +29,13 @@ const dummyRecipe = {
 
 export default function RecipeDetailScreen({ navigation, route }) {
   const recipe = route?.params?.recipe || dummyRecipe;
+  const myIngredients = route?.params?.myIngredients || [];
   const detail = {
     ...dummyRecipe,
     ...recipe,
-    ingredients: Array.isArray(recipe?.ingredients) ? recipe.ingredients : dummyRecipe.ingredients,
+    ingredients: Array.isArray(recipe?.ingredients) && typeof recipe.ingredients[0] === 'object'
+      ? recipe.ingredients
+      : dummyRecipe.ingredients,
     steps: Array.isArray(recipe?.steps) ? recipe.steps : dummyRecipe.steps,
   };
 
@@ -65,12 +68,15 @@ export default function RecipeDetailScreen({ navigation, route }) {
           {/* 재료 */}
           <Text style={styles.sectionTitle}>재료</Text>
           <View style={styles.ingredientList}>
-            {detail.ingredients?.map((item, index) => (
-              <View key={index} style={styles.ingredientRow}>
-                <Text style={styles.ingredientName}>{item.name}</Text>
-                <Text style={styles.ingredientAmount}>{item.amount}</Text>
-              </View>
-            ))}
+            {detail.ingredients?.map((item, index) => {
+              const isMissing = myIngredients.length > 0 && !myIngredients.includes(item.name);
+              return (
+                <View key={index} style={styles.ingredientRow}>
+                  <Text style={[styles.ingredientName, isMissing && { color: '#FF6B6B', fontWeight: 'bold' }]}>{item.name}</Text>
+                  <Text style={[styles.ingredientAmount, isMissing && { color: '#FF6B6B' }]}>{item.amount}</Text>
+                </View>
+              );
+            })}
           </View>
 
           {/* 요리순서 */}

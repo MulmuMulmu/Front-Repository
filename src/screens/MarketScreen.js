@@ -11,9 +11,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 const dummyPosts = [
-  { id: 1, title: '양상추', description: '당일 구매했는데, 많아서...', image: null },
-  { id: 2, title: '식빵', description: '유통기한이 오늘까지예요', image: null },
-  { id: 3, title: '방울토마토', description: '반팩정도 있어요', image: null },
+  { id: 1, title: '양상추', description: '당일 구매했는데, 많아서...', image: null, distance: '0.9km' },
+  { id: 2, title: '식빵', description: '유통기한이 오늘까지예요', image: null, distance: '1.2km' },
+  { id: 3, title: '방울토마토', description: '반팩정도 있어요', image: null, distance: '2.4km' },
 ];
 
 const urgentDummy = [
@@ -35,7 +35,11 @@ export default function MarketScreen({ navigation }) {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.title}>나눔</Text>
-            {location && <Text style={styles.location}>{location}</Text>}
+            {location && (
+              <TouchableOpacity onPress={() => navigation.navigate('LocationSetting')}>
+                <Text style={styles.location}>{location} ∨</Text>
+              </TouchableOpacity>
+            )}
           </View>
           <TouchableOpacity onPress={() => setSearchVisible(!searchVisible)}>
             <Ionicons name="search-outline" size={20} color="#adb5bd" />
@@ -85,6 +89,7 @@ export default function MarketScreen({ navigation }) {
                 <Text style={styles.postDescription} numberOfLines={1}>
                   {post.description}
                 </Text>
+                <Text style={styles.postDistance}>{post.distance}</Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -250,6 +255,12 @@ const styles = StyleSheet.create({
   postDescription: {
     fontSize: 14,
     color: '#adb5bd',
+    marginBottom: 6,
+  },
+  postDistance: {
+    fontSize: 13,
+    color: '#adb5bd',
+    textAlign: 'right',
   },
   writeButton: {
     position: 'absolute',

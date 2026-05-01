@@ -15,15 +15,16 @@ const myFoods = ['감자', '시금치', '방울토마토', '계란', '두부', '
 
 const categories = ['원형 보존 농산물(과일, 채소)', '미개봉 가공식품', '건강기능식품'];
 
-export default function MarketWriteScreen({ navigation }) {
-  const [photo, setPhoto] = useState(null);
+export default function MarketWriteScreen({ navigation, route }) {
+  const editPost = route?.params?.post || null;
+  const [photo, setPhoto] = useState(editPost?.image || null);
   const [photoModalVisible, setPhotoModalVisible] = useState(false);
-  const [title, setTitle] = useState('');
-  const [selectedFood, setSelectedFood] = useState('');
+  const [title, setTitle] = useState(editPost?.title || '');
+  const [selectedFood, setSelectedFood] = useState(editPost?.food || '');
   const [foodDropdownVisible, setFoodDropdownVisible] = useState(false);
-  const [description, setDescription] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [expiryDate, setExpiryDate] = useState('');
+  const [description, setDescription] = useState(editPost?.description || '');
+  const [selectedCategory, setSelectedCategory] = useState(editPost?.category || '');
+  const [expiryDate, setExpiryDate] = useState(editPost?.expiryDate || '');
 
   const openCamera = async () => {
     setPhotoModalVisible(false);
@@ -73,7 +74,7 @@ export default function MarketWriteScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>＜</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>나눔하기</Text>
+        <Text style={styles.headerTitle}>{editPost ? '게시글 수정' : '나눔하기'}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -96,6 +97,7 @@ export default function MarketWriteScreen({ navigation }) {
             placeholderTextColor="#adb5bd"
             value={title}
             onChangeText={setTitle}
+            returnKeyType="done"
           />
         </View>
 
@@ -134,6 +136,8 @@ export default function MarketWriteScreen({ navigation }) {
             onChangeText={setDescription}
             multiline
             textAlignVertical="top"
+            returnKeyType="done"
+            blurOnSubmit
           />
         </View>
 
@@ -165,6 +169,7 @@ export default function MarketWriteScreen({ navigation }) {
             value={expiryDate}
             onChangeText={setExpiryDate}
             keyboardType="numeric"
+            returnKeyType="done"
           />
         </View>
       </ScrollView>

@@ -11,21 +11,52 @@ import {
 const TABS = ['전체', '내 재료로만', '재료 추가 필요'];
 
 const dummyResults = [
-  { id: 1, title: '시금치 무침', ingredients: '마늘, 참기름, 채소금, 시금치', image: null, emoji: '🥬', hasAll: true },
-  { id: 2, title: '고기잡채', ingredients: '당면, 당근, 파프리카, 시금치...', image: null, emoji: '🍜', hasAll: false },
-  { id: 3, title: '돼지고기 김치찌개', ingredients: '돼지고기, 김치, 두부...', image: null, emoji: '🍲', hasAll: false },
-  { id: 4, title: '시금치 된장국', ingredients: '시금치, 된장, 두부...', image: null, emoji: '🥣', hasAll: true },
+  { id: 1, title: '시금치 무침', ingredients: ['마늘', '참기름', '소금', '시금치'], image: null, emoji: '🥬', hasAll: true },
+  { id: 2, title: '고기잡채', ingredients: ['당면', '당근', '파프리카', '시금치'], image: null, emoji: '🍜', hasAll: false },
+  { id: 3, title: '돼지고기 김치찌개', ingredients: ['돼지고기', '김치', '두부', '대파'], image: null, emoji: '🍲', hasAll: false },
+  { id: 4, title: '시금치 된장국', ingredients: ['시금치', '된장', '두부', '파'], image: null, emoji: '🥣', hasAll: true },
 ];
 
 export default function RecipeResultScreen({ navigation, route }) {
-  const selectedIngredients = route?.params?.selectedIngredients || ['시금치', '돼지고기'];
+  const allIngredients = route?.params?.selectedIngredients || ['시금치', '돼지고기'];
+  const [activeIngredients, setActiveIngredients] = useState(allIngredients);
   const [activeTab, setActiveTab] = useState('전체');
 
-  const filtered = activeTab === '전체'
+  const toggleIngredient = (name) => {
+    if (activeIngredients.includes(name)) {
+      setActiveIngredients(prev => prev.filter(i => i !== name));
+    } else {
+      setActiveIngredients(prev => [...prev, name]);
+    }
+  };
+
+  const baseResults = activeIngredients.length === 0
     ? dummyResults
+    : dummyResults.filter(r => activeIngredients.some(ing => r.ingredients.includes(ing)));
+
+  const renderIngredients = (recipe) => {
+    if (activeTab !== '재료 추가 필요') {
+      return <Text style={styles.recipeIngredients} numberOfLines={1}>{recipe.ingredients.join(', ')}</Text>;
+    }
+    return (
+      <View style={styles.ingredientRow}>
+        {recipe.ingredients.map((ing, i) => {
+          const isMissing = !activeIngredients.includes(ing);
+          return (
+            <Text key={i} style={[styles.ingredientChip, isMissing && styles.ingredientChipMissing]}>
+              {ing}{i < recipe.ingredients.length - 1 ? ', ' : ''}
+            </Text>
+          );
+        })}
+      </View>
+    );
+  };
+
+  const filtered = activeTab === '전체'
+    ? baseResults
     : activeTab === '내 재료로만'
-    ? dummyResults.filter(r => r.hasAll)
-    : dummyResults.filter(r => !r.hasAll);
+    ? baseResults.filter(r => r.hasAll)
+    : baseResults.filter(r => !r.hasAll);
 
   return (
     <View style={styles.container}>
@@ -40,10 +71,16 @@ export default function RecipeResultScreen({ navigation, route }) {
       {/* 선택 재료 칩 */}
       <View style={styles.chipContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
-          {selectedIngredients.map((name, index) => (
-            <View key={index} style={styles.chip}>
-              <Text style={styles.chipText}>{name}</Text>
-            </View>
+          {allIngredients.map((name, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.chip, !activeIngredients.includes(name) && styles.chipInactive]}
+              onPress={() => toggleIngredient(name)}
+            >
+              <Text style={[styles.chipText, !activeIngredients.includes(name) && styles.chipTextInactive]}>
+                {name}
+              </Text>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
@@ -75,7 +112,7 @@ export default function RecipeResultScreen({ navigation, route }) {
             <TouchableOpacity
               key={recipe.id}
               style={styles.recipeCard}
-              onPress={() => navigation.navigate('RecipeDetail', { recipe })}
+              onPress={() => navigation.navigate('RecipeDetail', { recipe, myIngredients: activeIngredients })}
             >
               <View style={styles.recipeImageBox}>
                 {recipe.image ? (
@@ -86,7 +123,7 @@ export default function RecipeResultScreen({ navigation, route }) {
               </View>
               <View style={styles.recipeInfo}>
                 <Text style={styles.recipeTitle}>{recipe.title}</Text>
-                <Text style={styles.recipeIngredients} numberOfLines={1}>{recipe.ingredients}</Text>
+                {renderIngredients(recipe)}
               </View>
             </TouchableOpacity>
           ))
@@ -118,7 +155,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#e8f4fb',
     borderRadius: 20,
   },
+  chipInactive: { backgroundColor: '#f1f3f5' },
   chipText: { fontSize: 13, color: '#495057', fontWeight: '600' },
+  chipTextInactive: { color: '#adb5bd' },
   tabBar: {
     flexDirection: 'row',
     borderBottomWidth: 0.5,
@@ -163,6 +202,9 @@ const styles = StyleSheet.create({
   recipeInfo: { flex: 1 },
   recipeTitle: { fontSize: 16, fontWeight: 'bold', color: '#495057', marginBottom: 6 },
   recipeIngredients: { fontSize: 13, color: '#adb5bd' },
+  ingredientRow: { flexDirection: 'row', flexWrap: 'wrap' },
+  ingredientChip: { fontSize: 13, color: '#adb5bd' },
+  ingredientChipMissing: { color: '#FF6B6B', fontWeight: 'bold' },
   emptyContainer: { alignItems: 'center', paddingTop: 60 },
   emptyText: { fontSize: 15, color: '#adb5bd' },
 });
