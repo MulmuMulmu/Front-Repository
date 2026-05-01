@@ -35,18 +35,19 @@ export const getUserPosts = async (userId) => {
   }
 };
 
-export const processUserPenalty = async (userId, status) => {
+export const processUserPenalty = async (userId, status, reportId) => {
   try {
-    const response = await client.post('/admin/report/users', { 
+    const response = await client.patch('/admin/report/users', { 
       userId, 
-      status 
+      status,
+      reportId
     });
     return response.data;
   } catch (error) {
     return {
       success: false,
-      code: 'COMMON500',
-      result: '사용자 상태를 변경할 수 없습니다.'
+      code: error.response?.data?.code || 'COMMON500',
+      result: error.response?.data?.result || '사용자 상태를 변경할 수 없습니다.'
     };
   }
 };

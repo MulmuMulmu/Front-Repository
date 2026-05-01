@@ -113,13 +113,13 @@ const OcrVerificationPage = () => {
               <label>구매 날짜</label>
               <input
                 type="text"
-                value={data.purchaseTime || ''}
+                value={(data.purchaseTime || '').replace('T', ' ')}
                 disabled={true}
               />
             </div>
             <div className={styles.infoField}>
               <label>업로드 시간</label>
-              <input type="text" value={data.createTime || ''} disabled={true} />
+              <input type="text" value={(data.createTime || '').replace('T', ' ')} disabled={true} />
             </div>
             <div className={styles.infoField}>
               <label>업로드 사용자</label>

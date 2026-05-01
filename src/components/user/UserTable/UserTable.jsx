@@ -128,7 +128,7 @@ const UserTable = () => {
                   <td>{user.number}</td>
                   <td style={{ color: '#000', fontWeight: '500' }}>{user.userId}</td>
                   <td>{user.nickName}</td>
-                  <td>{user.totalWarming}회</td>
+                  <td>{user.totalWarming === '영구정지' ? '영구정지' : `${user.totalWarming}회`}</td>
                   <td>
                     <button 
                       className={`${styles.postBtn} ${user.totalShare === 0 ? styles.gray : styles.blue}`}

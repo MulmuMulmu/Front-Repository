@@ -23,10 +23,21 @@ export const getReports = async (params) => {
 };
 
 /**
- * 신고 상세 조회 (현재 규격 확인 전이므로 기본 반환)
+ * 신고 상세 조회 (/admin/report/one)
  */
 export const getReportDetail = async (id) => {
-    return { success: true, result: {} };
+    try {
+        const response = await client.get('/admin/report/one', {
+            params: { reportId: id } // QueryString key를 reportId로 변경
+        });
+        return response.data;
+    } catch (error) {
+        return {
+            success: false,
+            code: 'COMMON500',
+            result: '신고 내역 한 건을 자세히 불러올 수 없습니다.'
+        };
+    }
 };
 
 /**
@@ -41,8 +52,8 @@ export const maskPost = async (shareId) => {
     } catch (error) {
         return {
             success: false,
-            code: 'COMMON500',
-            result: '게시글을 숨김 처리 할 수 없습니다.'
+            code: error.response?.data?.code || 'COMMON500',
+            result: error.response?.data?.result || '게시글을 숨김 처리 할 수 없습니다.'
         };
     }
 };

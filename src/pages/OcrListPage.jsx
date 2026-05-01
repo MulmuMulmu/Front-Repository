@@ -53,27 +53,27 @@ const OcrListPage = () => {
         <h1 className={styles.pageTitle}>OCR 검수 대기 목록</h1>
         <div className={styles.controls}>
           <div className={styles.searchBox}>
-            <input 
-              type="text" 
-              placeholder="사용자 닉네임 검색" 
+            <input
+              type="text"
+              placeholder="사용자 닉네임 검색"
               value={searchNickname}
               onChange={(e) => setSearchNickname(e.target.value)}
               className={styles.searchInput}
             />
-            <svg 
-              className={styles.searchIcon} 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
+            <svg
+              className={styles.searchIcon}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
               strokeLinejoin="round"
             >
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </div>
-          <select 
+          <select
             className={styles.sortSelect}
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value)}
@@ -85,7 +85,7 @@ const OcrListPage = () => {
           </select>
         </div>
       </div>
-      
+
       <div className={styles.tableWrapper}>
         <table className={styles.table}>
           <thead>
@@ -103,8 +103,8 @@ const OcrListPage = () => {
                 <tr key={receipt.ocrId} onClick={() => handleRowClick(receipt.ocrId)} className={styles.row}>
                   <td>{receipt.ocrId}</td>
                   <td>{receipt.nickName}</td>
-                  <td>{receipt.createTime}</td>
-                  <td style={{ fontWeight: 'bold', color: receipt.accuracy > 90 ? '#16a34a' : '#ea580c' }}>
+                  <td>{(receipt.createTime || '').replace('T', ' ')}</td>
+                  <td style={{ fontWeight: 'bold', color: receipt.accuracy >= 90 ? '#16a34a' : '#ea580c' }}>
                     {Number(receipt.accuracy)}%
                   </td>
                   <td>
